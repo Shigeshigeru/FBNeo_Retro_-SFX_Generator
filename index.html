@@ -109,6 +109,12 @@
       width: 120px;
       font-family: monospace;
     }
+    .status-note {
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: #9aa0b4;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -169,7 +175,7 @@
   </div>
 
   <div class="control-group">
-    <h2>3. フィルター ＆ 時間 (エンベロープ)</h2>
+    <h2>3. フィルター ＆ 時間 (エンベロープ) ＆ 音量</h2>
     <div class="row">
       <label>長さ (秒)</label>
       <input type="range" id="duration" min="0.05" max="2.5" step="0.05" value="0.25" oninput="upd()">
@@ -190,6 +196,11 @@
       <input type="range" id="filterEnd" min="50" max="12000" step="50" value="1000" oninput="upd()">
       <span id="filterEndVal">1000</span>
     </div>
+    <div class="row">
+      <label>音量 (ボリューム倍率)</label>
+      <input type="range" id="volume" min="0.0" max="2.0" step="0.05" value="1.0" oninput="upd()">
+      <span id="volumeVal">1.00</span>
+    </div>
   </div>
 
   <div class="actions">
@@ -203,15 +214,24 @@
     <span style="color:#888;">※FBNeo用に連番(00.wav, 01.wav等)で保存できます</span>
   </div>
 
+  <div class="status-note" id="audioStatus">AudioContext: 未初期化（クリックで再生）</div>
+
 <script>
 const SAMPLE_RATE = 44100;
 let audioCtx = null;
+
+function setStatus(msg) {
+  const el = document.getElementById('audioStatus');
+  if (el) el.textContent = msg;
+}
 
 function upd() {
   const ids = ['startFreq', 'endFreq', 'pitchCurve', 'lfoFreq', 'lfoDepth', 'duration', 'decayCurve', 'filterStart', 'filterEnd'];
   ids.forEach(id => {
     document.getElementById(id + 'Val').textContent = document.getElementById(id).value;
   });
+  const vol = parseFloat(document.getElementById('volume').value);
+  document.getElementById('volumeVal').textContent = vol.toFixed(2);
 }
 
 function getParams() {
@@ -225,39 +245,34 @@ function getParams() {
     duration: parseFloat(document.getElementById('duration').value),
     decayCurve: parseFloat(document.getElementById('decayCurve').value),
     filterStart: parseFloat(document.getElementById('filterStart').value),
-    filterEnd: parseFloat(document.getElementById('filterEnd').value)
+    filterEnd: parseFloat(document.getElementById('filterEnd').value),
+    volume: parseFloat(document.getElementById('volume').value)
   };
 }
 
-// 44.1kHz / Mono のFloat32波形データを生成
 function generateSamples(p) {
-  const totalSamples = Math.floor(SAMPLE_RATE * p.duration);
+  const totalSamples = Math.max(1, Math.floor(SAMPLE_RATE * p.duration));
   const buffer = new Float32Array(totalSamples);
 
   let phase = 0;
   let lfoPhase = 0;
-  let lfsr = 0xACE1; // 16-bit LFSRシード
+  let lfsr = 0xACE1;
   let lfsrCounter = 0;
   let currentNoise = 0;
-
-  // 簡易1次ローパスフィルター用変数
   let lpOut = 0;
 
   for (let i = 0; i < totalSamples; i++) {
-    const t = i / totalSamples; // 0.0 -> 1.0
+    const t = i / totalSamples;
 
-    // ピッチ計算
     const pitchProgress = Math.pow(t, p.pitchCurve);
     let freq = p.startFreq + (p.endFreq - p.startFreq) * pitchProgress;
 
-    // LFO変調
     if (p.lfoFreq > 0 && p.lfoDepth > 0) {
       lfoPhase += (2 * Math.PI * p.lfoFreq) / SAMPLE_RATE;
       freq += Math.sin(lfoPhase) * p.lfoDepth;
     }
     freq = Math.max(10, freq);
 
-    // 波形生成
     phase += freq / SAMPLE_RATE;
     if (phase >= 1.0) phase -= Math.floor(phase);
 
@@ -271,7 +286,6 @@ function generateSamples(p) {
     } else if (p.waveType === 'noise') {
       sample = Math.random() * 2.0 - 1.0;
     } else if (p.waveType === 'lfsr') {
-      // 周波数に応じてサンプルホールドするレトロノイズ
       lfsrCounter += freq / SAMPLE_RATE;
       if (lfsrCounter >= 1.0) {
         lfsrCounter -= 1.0;
@@ -282,39 +296,54 @@ function generateSamples(p) {
       sample = currentNoise;
     }
 
-    // ローパスフィルター適用
     const cutoff = p.filterStart + (p.filterEnd - p.filterStart) * t;
     const rc = 1.0 / (2 * Math.PI * Math.max(20, cutoff));
     const dt = 1.0 / SAMPLE_RATE;
     const alpha = dt / (rc + dt);
     lpOut = lpOut + alpha * (sample - lpOut);
 
-    // 音量エンベロープ（クリックノイズ防止のため最初5msフェードイン）
     const attack = Math.min(1.0, i / (SAMPLE_RATE * 0.005));
     const env = attack * Math.pow(1.0 - t, p.decayCurve);
 
-    buffer[i] = Math.max(-1.0, Math.min(1.0, lpOut * env * 0.85));
+    buffer[i] = Math.max(-1.0, Math.min(1.0, lpOut * env * 0.85 * p.volume));
   }
   return buffer;
 }
 
-function playSound() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SAMPLE_RATE });
+async function ensureAudioContext() {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) {
+    setStatus('エラー: このブラウザは Web Audio API に非対応です');
+    return null;
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (!audioCtx || audioCtx.state === 'closed') {
+    audioCtx = new Ctx({ sampleRate: SAMPLE_RATE });
+  }
+  if (audioCtx.state === 'suspended') {
+    try {
+      await audioCtx.resume();
+    } catch (e) {
+      setStatus('resume失敗: ' + e.message);
+    }
+  }
+  setStatus(`AudioContext: ${audioCtx.state} (${audioCtx.sampleRate}Hz)`);
+  return audioCtx;
+}
+
+async function playSound() {
+  const ctx = await ensureAudioContext();
+  if (!ctx) return;
 
   const samples = generateSamples(getParams());
-  const audioBuffer = audioCtx.createBuffer(1, samples.length, SAMPLE_RATE);
+  const audioBuffer = ctx.createBuffer(1, samples.length, SAMPLE_RATE);
   audioBuffer.getChannelData(0).set(samples);
 
-  const source = audioCtx.createBufferSource();
+  const source = ctx.createBufferSource();
   source.buffer = audioBuffer;
-  source.connect(audioCtx.destination);
+  source.connect(ctx.destination);
   source.start();
 }
 
-// 44.1kHz / 16bit / Mono PCM WAVバイナリを作成してダウンロード
 function downloadWav() {
   const samples = generateSamples(getParams());
   const numChannels = 1;
@@ -331,24 +360,20 @@ function downloadWav() {
     }
   }
 
-  // RIFFヘッダ
   writeString(0, 'RIFF');
   view.setUint32(4, 36 + dataSize, true);
   writeString(8, 'WAVE');
-  // fmtチャンク
   writeString(12, 'fmt ');
-  view.setUint32(16, 16, true); // PCM
-  view.setUint16(20, 1, true);  // リニアPCM
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
   view.setUint16(22, numChannels, true);
   view.setUint32(24, SAMPLE_RATE, true);
   view.setUint32(28, byteRate, true);
   view.setUint16(32, blockAlign, true);
   view.setUint16(34, bitsPerSample, true);
-  // dataチャンク
   writeString(36, 'data');
   view.setUint32(40, dataSize, true);
 
-  // 16-bit PCMデータ書き込み
   let offset = 44;
   for (let i = 0; i < samples.length; i++, offset += 2) {
     const s = Math.max(-1, Math.min(1, samples[i]));
@@ -366,9 +391,8 @@ function downloadWav() {
   URL.revokeObjectURL(url);
 }
 
-// レトロアーケード風プリセット
 function applyPreset(type) {
-  const set = (w, sf, ef, pc, lf, ld, dur, dc, fs, fe) => {
+  const set = (w, sf, ef, pc, lf, ld, dur, dc, fs, fe, vol = 1.0) => {
     document.getElementById('waveType').value = w;
     document.getElementById('startFreq').value = sf;
     document.getElementById('endFreq').value = ef;
@@ -379,20 +403,21 @@ function applyPreset(type) {
     document.getElementById('decayCurve').value = dc;
     document.getElementById('filterStart').value = fs;
     document.getElementById('filterEnd').value = fe;
+    document.getElementById('volume').value = vol;
     upd();
     playSound();
   };
 
   if (type === 'zapper') {
-    set('square', 1600, 140, 2.2, 0, 0, 0.2, 1.4, 9000, 1200);
+    set('square', 1600, 140, 2.2, 0, 0, 0.2, 1.4, 9000, 1200, 1.0);
   } else if (type === 'blaster') {
-    set('triangle', 900, 180, 0.8, 35, 120, 0.45, 0.9, 5000, 800);
+    set('triangle', 900, 180, 0.8, 35, 120, 0.45, 0.9, 5000, 800, 1.0);
   } else if (type === 'explosion') {
-    set('lfsr', 1200, 80, 1.5, 15, 200, 1.2, 1.8, 4500, 150);
+    set('lfsr', 1200, 80, 1.5, 15, 200, 1.2, 1.8, 4500, 150, 1.0);
   } else if (type === 'bacura') {
-    set('square', 2200, 2100, 1.0, 110, 650, 0.25, 2.0, 10000, 4000);
+    set('square', 2200, 2100, 1.0, 110, 650, 0.25, 2.0, 10000, 4000, 1.0);
   } else if (type === 'hit') {
-    set('square', 600, 1400, 1.2, 65, 450, 0.35, 1.1, 8000, 2500);
+    set('square', 600, 1400, 1.2, 65, 450, 0.35, 1.1, 8000, 2500, 1.0);
   } else if (type === 'random') {
     const waves = ['square', 'sawtooth', 'triangle', 'noise', 'lfsr'];
     const w = waves[Math.floor(Math.random() * waves.length)];
@@ -403,7 +428,7 @@ function applyPreset(type) {
     const ld = lf > 0 ? Math.floor(Math.random() * 800) : 0;
     const dur = (Math.random() * 1.0 + 0.1).toFixed(2);
     const dc = (Math.random() * 2.0 + 0.5).toFixed(1);
-    set(w, sf, ef, pc, lf, ld, dur, dc, 8000, 400);
+    set(w, sf, ef, pc, lf, ld, dur, dc, 8000, 400, 1.0);
   }
 }
 
