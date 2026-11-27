@@ -21,6 +21,17 @@
       padding-bottom: 8px;
       margin-top: 0;
     }
+    .ver-badge {
+      font-size: 0.78rem;
+      background: #1b2f2c;
+      color: #7fffd4;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid #00ffcc88;
+      vertical-align: middle;
+      margin-left: 6px;
+      font-family: monospace;
+    }
     .badge {
       font-size: 0.75rem;
       background: #223;
@@ -35,7 +46,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 14px;
     }
     button {
       background-color: #2a2a38;
@@ -48,6 +59,75 @@
       transition: 0.15s;
     }
     button:hover { background-color: #3a3a4e; border-color: #00ffcc; }
+    .custom-preset-box {
+      background: #1a1a24;
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin-bottom: 18px;
+      border: 1px solid #2c2c3a;
+    }
+    .custom-preset-box h2 {
+      font-size: 0.85rem;
+      color: #00ffcc;
+      margin: 0 0 8px 0;
+    }
+    .preset-save-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .preset-save-row input {
+      flex: 1;
+      background: #222;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .btn-save {
+      background-color: #1f5c4d;
+      border-color: #00ffcc;
+      font-weight: bold;
+    }
+    .btn-save:hover { background-color: #287764; }
+    .custom-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .custom-item {
+      display: inline-flex;
+      align-items: center;
+      background: #252534;
+      border: 1px solid #444;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .custom-item button.load-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 10px;
+    }
+    .custom-item button.load-btn:hover {
+      background: #333347;
+      color: #00ffcc;
+    }
+    .custom-item button.del-btn {
+      border: none;
+      border-left: 1px solid #3c3c50;
+      background: transparent;
+      color: #ff7b7b;
+      padding: 6px 8px;
+      font-size: 0.75rem;
+    }
+    .custom-item button.del-btn:hover {
+      background: #522424;
+    }
+    .empty-msg {
+      font-size: 0.8rem;
+      color: #777;
+    }
     .control-group {
       background: #1a1a24;
       padding: 14px;
@@ -119,15 +199,29 @@
 </head>
 <body>
 
-  <h1>FBNeo Retro SFX Generator <span class="badge">44.1kHz / 16bit / Mono</span></h1>
+  <h1>FBNeo Retro SFX Generator<span class="ver-badge">v1.3</span><span class="badge">44.1kHz / 16bit / Mono</span></h1>
 
   <div class="presets">
     <button onclick="applyPreset('zapper')">🔫 発射音 (ザッパー風)</button>
+    <button onclick="applyPreset('laser')">⚡ 連射レーザー</button>
+    <button onclick="applyPreset('plasma')">🔵 プラズマ弾</button>
+    <button onclick="applyPreset('cannon')">🔺 重低音キャノン</button>
     <button onclick="applyPreset('blaster')">💣 爆撃音 (ブラスター風)</button>
     <button onclick="applyPreset('explosion')">💥 大爆発 (ノイズ減衰)</button>
+    <button onclick="applyPreset('mini_boom')">🔥 小爆発・被弾</button>
+    <button onclick="applyPreset('quake_boom')">🌋 地響き爆破</button>
     <button onclick="applyPreset('bacura')">🛡️ 金属弾き音 (バキュラ風)</button>
     <button onclick="applyPreset('hit')">👾 敵撃破音 (ピロロッ)</button>
     <button onclick="applyPreset('random')">🎲 ランダム生成</button>
+  </div>
+
+  <div class="custom-preset-box">
+    <h2 id="customPresetTitle">★ 自作プリセット保存 (最大10個 / 0 / 10)</h2>
+    <div class="preset-save-row">
+      <input type="text" id="presetName" maxlength="24" placeholder="プリセット名（例: 自機ショット01）">
+      <button class="btn-save" onclick="saveCustomPreset()">💾 プリセット保存</button>
+    </div>
+    <div class="custom-list" id="customPresetList"></div>
   </div>
 
   <div class="control-group">
@@ -218,6 +312,8 @@
 
 <script>
 const SAMPLE_RATE = 44100;
+const STORAGE_KEY = 'fbneo_retro_sfx_custom_presets_v1';
+const MAX_CUSTOM_PRESETS = 10;
 let audioCtx = null;
 
 function setStatus(msg) {
@@ -248,6 +344,121 @@ function getParams() {
     filterEnd: parseFloat(document.getElementById('filterEnd').value),
     volume: parseFloat(document.getElementById('volume').value)
   };
+}
+
+function applyParamsObject(p) {
+  document.getElementById('waveType').value = p.waveType ?? 'square';
+  document.getElementById('startFreq').value = p.startFreq ?? 1400;
+  document.getElementById('endFreq').value = p.endFreq ?? 120;
+  document.getElementById('pitchCurve').value = p.pitchCurve ?? 1.8;
+  document.getElementById('lfoFreq').value = p.lfoFreq ?? 0;
+  document.getElementById('lfoDepth').value = p.lfoDepth ?? 0;
+  document.getElementById('duration').value = p.duration ?? 0.25;
+  document.getElementById('decayCurve').value = p.decayCurve ?? 1.2;
+  document.getElementById('filterStart').value = p.filterStart ?? 8000;
+  document.getElementById('filterEnd').value = p.filterEnd ?? 1000;
+  document.getElementById('volume').value = p.volume ?? 1.0;
+  upd();
+  playSound();
+}
+
+function loadCustomPresets() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    const trimmed = {};
+    Object.keys(parsed).slice(0, MAX_CUSTOM_PRESETS).forEach(k => {
+      trimmed[k] = parsed[k];
+    });
+    return trimmed;
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveCustomPresetsObj(obj) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+  } catch (e) {
+    setStatus('保存エラー: localStorage に書き込めませんでした');
+  }
+}
+
+function saveCustomPreset() {
+  const input = document.getElementById('presetName');
+  const name = input.value.trim();
+  if (!name) {
+    setStatus('プリセット名を入力してから保存してな');
+    input.focus();
+    return;
+  }
+  const presets = loadCustomPresets();
+  const isOverwrite = Object.prototype.hasOwnProperty.call(presets, name);
+  const currentCount = Object.keys(presets).length;
+
+  if (!isOverwrite && currentCount >= MAX_CUSTOM_PRESETS) {
+    setStatus(`自作プリセットは最大${MAX_CUSTOM_PRESETS}個までやで。不要なものを削除するか、既存の名前で上書きしてな`);
+    return;
+  }
+
+  presets[name] = getParams();
+  saveCustomPresetsObj(presets);
+  renderCustomPresets();
+  setStatus(isOverwrite ? `プリセット「${name}」を上書き保存しました` : `プリセット「${name}」を保存しました (${Object.keys(presets).length}/${MAX_CUSTOM_PRESETS})`);
+}
+
+function deleteCustomPreset(name) {
+  const presets = loadCustomPresets();
+  if (!Object.prototype.hasOwnProperty.call(presets, name)) return;
+  delete presets[name];
+  saveCustomPresetsObj(presets);
+  renderCustomPresets();
+  setStatus(`プリセット「${name}」を削除しました (${Object.keys(presets).length}/${MAX_CUSTOM_PRESETS})`);
+}
+
+function renderCustomPresets() {
+  const container = document.getElementById('customPresetList');
+  const titleEl = document.getElementById('customPresetTitle');
+  const presets = loadCustomPresets();
+  const names = Object.keys(presets);
+
+  if (titleEl) {
+    titleEl.textContent = `★ 自作プリセット保存 (最大${MAX_CUSTOM_PRESETS}個 / ${names.length} / ${MAX_CUSTOM_PRESETS})`;
+  }
+
+  container.innerHTML = '';
+  if (names.length === 0) {
+    const span = document.createElement('span');
+    span.className = 'empty-msg';
+    span.textContent = `まだ自作プリセットはありません（最大${MAX_CUSTOM_PRESETS}個まで保存できます）。`;
+    container.appendChild(span);
+    return;
+  }
+
+  names.forEach(name => {
+    const item = document.createElement('div');
+    item.className = 'custom-item';
+
+    const loadBtn = document.createElement('button');
+    loadBtn.className = 'load-btn';
+    loadBtn.textContent = name;
+    loadBtn.onclick = () => {
+      document.getElementById('presetName').value = name;
+      applyParamsObject(presets[name]);
+    };
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del-btn';
+    delBtn.textContent = '✕';
+    delBtn.title = `${name} を削除`;
+    delBtn.onclick = () => deleteCustomPreset(name);
+
+    item.appendChild(loadBtn);
+    item.appendChild(delBtn);
+    container.appendChild(item);
+  });
 }
 
 function generateSamples(p) {
@@ -392,47 +603,42 @@ function downloadWav() {
 }
 
 function applyPreset(type) {
-  const set = (w, sf, ef, pc, lf, ld, dur, dc, fs, fe, vol = 1.0) => {
-    document.getElementById('waveType').value = w;
-    document.getElementById('startFreq').value = sf;
-    document.getElementById('endFreq').value = ef;
-    document.getElementById('pitchCurve').value = pc;
-    document.getElementById('lfoFreq').value = lf;
-    document.getElementById('lfoDepth').value = ld;
-    document.getElementById('duration').value = dur;
-    document.getElementById('decayCurve').value = dc;
-    document.getElementById('filterStart').value = fs;
-    document.getElementById('filterEnd').value = fe;
-    document.getElementById('volume').value = vol;
-    upd();
-    playSound();
-  };
-
   if (type === 'zapper') {
-    set('square', 1600, 140, 2.2, 0, 0, 0.2, 1.4, 9000, 1200, 1.0);
+    applyParamsObject({ waveType: 'square', startFreq: 1600, endFreq: 140, pitchCurve: 2.2, lfoFreq: 0, lfoDepth: 0, duration: 0.2, decayCurve: 1.4, filterStart: 9000, filterEnd: 1200, volume: 1.0 });
+  } else if (type === 'laser') {
+    applyParamsObject({ waveType: 'sawtooth', startFreq: 2600, endFreq: 220, pitchCurve: 2.8, lfoFreq: 0, lfoDepth: 0, duration: 0.14, decayCurve: 1.7, filterStart: 10000, filterEnd: 1800, volume: 1.0 });
+  } else if (type === 'plasma') {
+    applyParamsObject({ waveType: 'square', startFreq: 1100, endFreq: 260, pitchCurve: 1.3, lfoFreq: 48, lfoDepth: 280, duration: 0.28, decayCurve: 1.2, filterStart: 7500, filterEnd: 900, volume: 1.0 });
+  } else if (type === 'cannon') {
+    applyParamsObject({ waveType: 'triangle', startFreq: 420, endFreq: 48, pitchCurve: 2.4, lfoFreq: 18, lfoDepth: 55, duration: 0.42, decayCurve: 1.5, filterStart: 3200, filterEnd: 250, volume: 1.15 });
   } else if (type === 'blaster') {
-    set('triangle', 900, 180, 0.8, 35, 120, 0.45, 0.9, 5000, 800, 1.0);
+    applyParamsObject({ waveType: 'triangle', startFreq: 900, endFreq: 180, pitchCurve: 0.8, lfoFreq: 35, lfoDepth: 120, duration: 0.45, decayCurve: 0.9, filterStart: 5000, filterEnd: 800, volume: 1.0 });
   } else if (type === 'explosion') {
-    set('lfsr', 1200, 80, 1.5, 15, 200, 1.2, 1.8, 4500, 150, 1.0);
+    applyParamsObject({ waveType: 'lfsr', startFreq: 1200, endFreq: 80, pitchCurve: 1.5, lfoFreq: 15, lfoDepth: 200, duration: 1.2, decayCurve: 1.8, filterStart: 4500, filterEnd: 150, volume: 1.0 });
+  } else if (type === 'mini_boom') {
+    applyParamsObject({ waveType: 'noise', startFreq: 950, endFreq: 140, pitchCurve: 1.6, lfoFreq: 0, lfoDepth: 0, duration: 0.22, decayCurve: 2.2, filterStart: 6000, filterEnd: 400, volume: 1.0 });
+  } else if (type === 'quake_boom') {
+    applyParamsObject({ waveType: 'lfsr', startFreq: 320, endFreq: 35, pitchCurve: 1.1, lfoFreq: 12, lfoDepth: 95, duration: 1.85, decayCurve: 1.3, filterStart: 2200, filterEnd: 90, volume: 1.2 });
   } else if (type === 'bacura') {
-    set('square', 2200, 2100, 1.0, 110, 650, 0.25, 2.0, 10000, 4000, 1.0);
+    applyParamsObject({ waveType: 'square', startFreq: 2200, endFreq: 2100, pitchCurve: 1.0, lfoFreq: 110, lfoDepth: 650, duration: 0.25, decayCurve: 2.0, filterStart: 10000, filterEnd: 4000, volume: 1.0 });
   } else if (type === 'hit') {
-    set('square', 600, 1400, 1.2, 65, 450, 0.35, 1.1, 8000, 2500, 1.0);
+    applyParamsObject({ waveType: 'square', startFreq: 600, endFreq: 1400, pitchCurve: 1.2, lfoFreq: 65, lfoDepth: 450, duration: 0.35, decayCurve: 1.1, filterStart: 8000, filterEnd: 2500, volume: 1.0 });
   } else if (type === 'random') {
     const waves = ['square', 'sawtooth', 'triangle', 'noise', 'lfsr'];
     const w = waves[Math.floor(Math.random() * waves.length)];
     const sf = Math.floor(Math.random() * 2500) + 150;
     const ef = Math.floor(Math.random() * 1500) + 40;
-    const pc = (Math.random() * 2.5 + 0.4).toFixed(1);
+    const pc = parseFloat((Math.random() * 2.5 + 0.4).toFixed(1));
     const lf = Math.random() > 0.5 ? Math.floor(Math.random() * 120) : 0;
     const ld = lf > 0 ? Math.floor(Math.random() * 800) : 0;
-    const dur = (Math.random() * 1.0 + 0.1).toFixed(2);
-    const dc = (Math.random() * 2.0 + 0.5).toFixed(1);
-    set(w, sf, ef, pc, lf, ld, dur, dc, 8000, 400, 1.0);
+    const dur = parseFloat((Math.random() * 1.0 + 0.1).toFixed(2));
+    const dc = parseFloat((Math.random() * 2.0 + 0.5).toFixed(1));
+    applyParamsObject({ waveType: w, startFreq: sf, endFreq: ef, pitchCurve: pc, lfoFreq: lf, lfoDepth: ld, duration: dur, decayCurve: dc, filterStart: 8000, filterEnd: 400, volume: 1.0 });
   }
 }
 
 upd();
+renderCustomPresets();
 </script>
 </body>
 </html>
