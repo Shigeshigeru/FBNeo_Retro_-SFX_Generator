@@ -1,644 +1,1000 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>FBNeo Retro SFX Generator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FBNeo Retro SFX Generator v1.5</title>
   <style>
+    :root {
+      --bg-main: #0b0f17;
+      --bg-panel: #131a26;
+      --bg-input: #0a0e14;
+      --border-subtle: #253044;
+      --border-accent: #00e5ff;
+      --text-main: #e6edf7;
+      --text-muted: #8fa0b8;
+      --accent-cyan: #00e5ff;
+      --accent-pink: #ff4fd8;
+      --accent-green: #22e584;
+      --accent-amber: #fbbf24;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Segoe UI', Meiryo, sans-serif;
-      background-color: #121218;
-      color: #e0e0e0;
-      max-width: 640px;
-      margin: 24px auto;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      margin: 0;
+      padding: 16px;
+      background: radial-gradient(circle at top, #141d2e 0%, var(--bg-main) 65%);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, "Segoe UI", Meiryo, sans-serif;
+      line-height: 1.45;
     }
-    h1 {
-      font-size: 1.3rem;
-      color: #00ffcc;
-      border-bottom: 1px solid #333;
-      padding-bottom: 8px;
-      margin-top: 0;
+
+    .app-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
-    .ver-badge {
-      font-size: 0.78rem;
-      background: #1b2f2c;
-      color: #7fffd4;
-      padding: 2px 7px;
-      border-radius: 4px;
-      border: 1px solid #00ffcc88;
-      vertical-align: middle;
-      margin-left: 6px;
-      font-family: monospace;
-    }
-    .badge {
-      font-size: 0.75rem;
-      background: #223;
-      color: #00ffcc;
-      padding: 2px 8px;
-      border-radius: 4px;
-      border: 1px solid #00ffcc;
-      vertical-align: middle;
-      margin-left: 8px;
-    }
-    .presets {
+
+    .header-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 14px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 14px;
+      padding: 10px 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
     }
-    button {
-      background-color: #2a2a38;
-      color: #fff;
-      border: 1px solid #444;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: 0.15s;
-    }
-    button:hover { background-color: #3a3a4e; border-color: #00ffcc; }
-    .custom-preset-box {
-      background: #1a1a24;
-      padding: 12px 14px;
-      border-radius: 6px;
-      margin-bottom: 18px;
-      border: 1px solid #2c2c3a;
-    }
-    .custom-preset-box h2 {
-      font-size: 0.85rem;
-      color: #00ffcc;
-      margin: 0 0 8px 0;
-    }
-    .preset-save-row {
+
+    .title-group {
       display: flex;
+      flex-wrap: wrap;
+      align-items: center;
       gap: 8px;
-      margin-bottom: 10px;
     }
-    .preset-save-row input {
-      flex: 1;
-      background: #222;
-      color: #fff;
-      border: 1px solid #555;
-      padding: 6px 10px;
-      border-radius: 4px;
+
+    .title-group h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: 0.02em;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+    }
+
+    .version-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 79, 216, 0.16);
+      border: 1px solid rgba(255, 79, 216, 0.55);
+      color: var(--accent-pink);
+      font-weight: 700;
+    }
+
+    .format-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
       font-size: 0.85rem;
+      color: var(--text-muted);
     }
-    .btn-save {
-      background-color: #1f5c4d;
-      border-color: #00ffcc;
-      font-weight: bold;
+
+    .format-box select {
+      background: var(--bg-input);
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-accent);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
     }
-    .btn-save:hover { background-color: #287764; }
-    .custom-list {
+
+    .status-pill {
+      font-size: 0.76rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--accent-cyan);
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+      color: var(--accent-cyan);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 5px;
+    }
+
+    .preset-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+      margin-bottom: 10px;
     }
-    .custom-item {
-      display: inline-flex;
-      align-items: center;
-      background: #252534;
-      border: 1px solid #444;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .custom-item button.load-btn {
-      border: none;
-      background: transparent;
-      padding: 6px 10px;
-    }
-    .custom-item button.load-btn:hover {
-      background: #333347;
-      color: #00ffcc;
-    }
-    .custom-item button.del-btn {
-      border: none;
-      border-left: 1px solid #3c3c50;
-      background: transparent;
-      color: #ff7b7b;
-      padding: 6px 8px;
-      font-size: 0.75rem;
-    }
-    .custom-item button.del-btn:hover {
-      background: #522424;
-    }
-    .empty-msg {
-      font-size: 0.8rem;
-      color: #777;
-    }
-    .control-group {
-      background: #1a1a24;
-      padding: 14px;
+
+    .preset-btn {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
       border-radius: 6px;
-      margin-bottom: 14px;
-      border: 1px solid #2c2c3a;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, transform 0.1s;
     }
-    .control-group h2 {
-      font-size: 0.9rem;
-      color: #aaa;
-      margin: 0 0 10px 0;
+
+    .preset-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      transform: translateY(-1px);
     }
-    .row {
+
+    .preset-btn.active {
+      border-color: var(--accent-pink);
+      color: var(--accent-pink);
+      box-shadow: 0 0 8px rgba(255, 79, 216, 0.2);
+    }
+
+    .custom-preset-row {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .row label { font-size: 0.85rem; width: 42%; }
-    .row input[type="range"] { width: 42%; accent-color: #00ffcc; }
-    .row select { width: 42%; background: #222; color: #fff; border: 1px solid #555; padding: 4px; }
-    .row span { font-size: 0.8rem; width: 14%; text-align: right; font-family: monospace; color: #00ffcc; }
-    .actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-    }
-    .btn-play {
-      flex: 1;
-      background-color: #007acc;
-      border: none;
-      font-weight: bold;
-      font-size: 1rem;
-      padding: 12px;
-    }
-    .btn-play:hover { background-color: #0090f0; }
-    .btn-dl {
-      flex: 1;
-      background-color: #00aa77;
-      border: none;
-      font-weight: bold;
-      font-size: 1rem;
-      padding: 12px;
-    }
-    .btn-dl:hover { background-color: #00cc88; }
-    .filename-box {
-      display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 8px;
-      margin-top: 12px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
     }
-    .filename-box input {
-      background: #222;
-      color: #fff;
-      border: 1px solid #555;
-      padding: 6px;
-      border-radius: 4px;
-      width: 120px;
-      font-family: monospace;
+
+    .custom-preset-row input[type="text"],
+    .custom-preset-row select,
+    .field select,
+    .footer-bar input[type="text"] {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 0.84rem;
     }
-    .status-note {
+
+    .custom-preset-row input[type="text"] {
+      flex: 1 1 180px;
+      min-width: 140px;
+    }
+
+    .share-box {
       margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .share-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .share-label {
+      font-size: 0.82rem;
+      color: var(--accent-amber);
+      font-weight: 600;
+    }
+
+    .share-textarea {
+      width: 100%;
+      min-height: 76px;
+      resize: vertical;
+      background: var(--bg-input);
+      color: #a5f3fc;
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, Meiryo, monospace;
+      font-size: 0.76rem;
+      line-height: 1.4;
+    }
+
+    .share-msg {
+      font-size: 0.78rem;
+      color: var(--accent-green);
+      min-height: 1.1em;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .span-2 {
+      grid-column: 1 / -1;
+    }
+
+    .subgrid-2col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+    }
+
+    .field-header label {
+      color: var(--text-main);
+    }
+
+    .val-readout {
+      font-variant-numeric: tabular-nums;
+      color: var(--accent-cyan);
       font-size: 0.8rem;
-      color: #9aa0b4;
-      font-family: monospace;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+      margin: 2px 0;
+    }
+
+    .footer-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 14px;
+      padding: 12px 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00b8d4, #00e5ff);
+      color: #061018;
+      border: none;
+      border-radius: 7px;
+      padding: 7px 14px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-save {
+      background: linear-gradient(135deg, #16a34a, var(--accent-green));
+      color: #05130b;
+      border: none;
+      border-radius: 7px;
+      padding: 7px 14px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-sub {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      padding: 6px 11px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .btn-sub:hover {
+      border-color: var(--accent-cyan);
+    }
+
+    .file-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    .file-label input[type="text"] {
+      width: 96px;
+    }
+
+    .hint-note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 760px) {
+      .controls-grid,
+      .subgrid-2col {
+        grid-template-columns: 1fr;
+      }
+      .span-2 {
+        grid-column: auto;
+      }
+      .file-label {
+        margin-left: 0;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="app-wrap">
+    <header class="header-bar">
+      <div class="title-group">
+        <h1>🎵 FBNeo Retro SFX Generator</h1>
+        <span class="version-badge">v1.5</span>
+      </div>
+      <div class="format-box">
+        <label for="sampleRate">🎚️ サンプリングレート:</label>
+        <select id="sampleRate">
+          <option value="44100" selected>44100 Hz</option>
+          <option value="22050">22050 Hz</option>
+          <option value="11025">11025 Hz</option>
+          <option value="8000">8000 Hz</option>
+        </select>
+        <span>/ 16bit / Mono</span>
+        <span class="status-pill" id="audioStatus">🔊 準備OK</span>
+      </div>
+    </header>
 
-  <h1>FBNeo Retro SFX Generator<span class="ver-badge">v1.3</span><span class="badge">44.1kHz / 16bit / Mono</span></h1>
+    <section class="panel">
+      <div class="preset-row" id="presetButtons">
+        <button type="button" class="preset-btn" data-preset="shot">🔫 発射音 (ザッパー風)</button>
+        <button type="button" class="preset-btn" data-preset="laser">⚡ 連射レーザー</button>
+        <button type="button" class="preset-btn" data-preset="plasma">🔵 プラズマ弾</button>
+        <button type="button" class="preset-btn" data-preset="cannon">🔺 重低音キャノン</button>
+        <button type="button" class="preset-btn" data-preset="blast">💣 爆撃音 (ブラスター風)</button>
+        <button type="button" class="preset-btn" data-preset="explosion">💥 大爆発 (ノイズ減衰)</button>
+        <button type="button" class="preset-btn" data-preset="smallBlast">🔥 小爆発・被弾</button>
+        <button type="button" class="preset-btn" data-preset="quake">🌋 地響き爆破</button>
+        <button type="button" class="preset-btn" data-preset="ricochet">🛡️ 金属弾き音 (バキュラ風)</button>
+        <button type="button" class="preset-btn" data-preset="hit">👾 敵撃破音 (ピロロッ)</button>
+        <button type="button" class="preset-btn" data-preset="random">🎲 ランダム生成</button>
+      </div>
+      <div class="custom-preset-row">
+        <input type="text" id="customPresetName" placeholder="✨ プリセット名（例: 自機ショット01）" />
+        <button type="button" class="btn-sub" id="saveCustomPresetBtn">📌 プリセット保存</button>
+        <select id="customPresetSelect" aria-label="保存済みプリセット">
+          <option value="">📂 -- 自作プリセット読込 --</option>
+        </select>
+        <button type="button" class="btn-sub" id="deleteCustomPresetBtn">🗑️ 削除</button>
+      </div>
 
-  <div class="presets">
-    <button onclick="applyPreset('zapper')">🔫 発射音 (ザッパー風)</button>
-    <button onclick="applyPreset('laser')">⚡ 連射レーザー</button>
-    <button onclick="applyPreset('plasma')">🔵 プラズマ弾</button>
-    <button onclick="applyPreset('cannon')">🔺 重低音キャノン</button>
-    <button onclick="applyPreset('blaster')">💣 爆撃音 (ブラスター風)</button>
-    <button onclick="applyPreset('explosion')">💥 大爆発 (ノイズ減衰)</button>
-    <button onclick="applyPreset('mini_boom')">🔥 小爆発・被弾</button>
-    <button onclick="applyPreset('quake_boom')">🌋 地響き爆破</button>
-    <button onclick="applyPreset('bacura')">🛡️ 金属弾き音 (バキュラ風)</button>
-    <button onclick="applyPreset('hit')">👾 敵撃破音 (ピロロッ)</button>
-    <button onclick="applyPreset('random')">🎲 ランダム生成</button>
+      <div class="share-box">
+        <div class="share-actions">
+          <span class="share-label">🤝 みんなの効果音共有 (JSON):</span>
+          <button type="button" class="btn-sub" id="exportJsonBtn">📤 JSON書き出し</button>
+          <button type="button" class="btn-sub" id="copyJsonBtn">📋 JSONコピー</button>
+          <button type="button" class="btn-sub" id="importJsonBtn">📥 JSON読込</button>
+          <span class="share-msg" id="shareStatusMsg"></span>
+        </div>
+        <textarea
+          id="presetJsonArea"
+          class="share-textarea"
+          placeholder="ここにJSONを貼り付けて「📥 JSON読込」を押すか、「📤 JSON書き出し」で共有用JSONを作れます！"
+        ></textarea>
+      </div>
+    </section>
+
+    <main class="controls-grid">
+      <section class="panel">
+        <h2>🎛️ 1. 基本波形 ＆ ピッチ</h2>
+        <div class="subgrid-2col">
+          <div class="field span-2">
+            <div class="field-header">
+              <label for="waveType">🎶 波形タイプ</label>
+            </div>
+            <select id="waveType">
+              <option value="square">矩形波 (Square - ファミコン/基板風)</option>
+              <option value="sawtooth">ノコギリ波 (Sawtooth - 鋭い音)</option>
+              <option value="triangle">三角波 (Triangle - 柔らかい音)</option>
+              <option value="noise">ホワイトノイズ (爆発・風)</option>
+              <option value="lfsr">LFSR粗ノイズ (レトロチップ爆発)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <div class="field-header">
+              <label for="startFreq">📈 開始周波数 (Hz)</label>
+              <span class="val-readout" id="startFreqVal">1400</span>
+            </div>
+            <input type="range" id="startFreq" min="50" max="4000" step="10" value="1400" />
+          </div>
+
+          <div class="field">
+            <div class="field-header">
+              <label for="endFreq">📉 終了周波数 (Hz)</label>
+              <span class="val-readout" id="endFreqVal">120</span>
+            </div>
+            <input type="range" id="endFreq" min="20" max="4000" step="10" value="120" />
+          </div>
+
+          <div class="field span-2">
+            <div class="field-header">
+              <label for="pitchCurve">🎢 ピッチ変化カーブ</label>
+              <span class="val-readout" id="pitchCurveVal">1.8</span>
+            </div>
+            <input type="range" id="pitchCurve" min="0.1" max="5.0" step="0.1" value="1.8" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>🌊 2. 変調</h2>
+        <div class="subgrid-2col">
+          <div class="field">
+            <div class="field-header">
+              <label for="lfoSpeed">💓 変調スピード (LFO Hz)</label>
+              <span class="val-readout" id="lfoSpeedVal">0</span>
+            </div>
+            <input type="range" id="lfoSpeed" min="0" max="100" step="1" value="0" />
+          </div>
+
+          <div class="field">
+            <div class="field-header">
+              <label for="lfoDepth">🌀 変調の深さ (Hz)</label>
+              <span class="val-readout" id="lfoDepthVal">0</span>
+            </div>
+            <input type="range" id="lfoDepth" min="0" max="2000" step="10" value="0" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel span-2">
+        <h2>🔊 3. フィルター ＆ 時間 (エンベロープ) ＆ 音量</h2>
+        <div class="subgrid-2col">
+          <div class="field">
+            <div class="field-header">
+              <label for="duration">⏱️ 長さ (秒)</label>
+              <span class="val-readout" id="durationVal">0.25</span>
+            </div>
+            <input type="range" id="duration" min="0.02" max="2.0" step="0.01" value="0.25" />
+          </div>
+
+          <div class="field">
+            <div class="field-header">
+              <label for="decayCurve">📉 音量減衰カーブ</label>
+              <span class="val-readout" id="decayCurveVal">1.2</span>
+            </div>
+            <input type="range" id="decayCurve" min="0.1" max="5.0" step="0.1" value="1.2" />
+          </div>
+
+          <div class="field">
+            <div class="field-header">
+              <label for="lpStart">🔽 ローパス開始 (Hz)</label>
+              <span class="val-readout" id="lpStartVal">8000</span>
+            </div>
+            <input type="range" id="lpStart" min="100" max="16000" step="50" value="8000" />
+          </div>
+
+          <div class="field">
+            <div class="field-header">
+              <label for="lpEnd">🔻 ローパス終了 (Hz)</label>
+              <span class="val-readout" id="lpEndVal">1000</span>
+            </div>
+            <input type="range" id="lpEnd" min="50" max="16000" step="50" value="1000" />
+          </div>
+
+          <div class="field span-2">
+            <div class="field-header">
+              <label for="volume">🔈 音量 (ボリューム倍率)</label>
+              <span class="val-readout" id="volumeVal">1.00</span>
+            </div>
+            <input type="range" id="volume" min="0.0" max="2.0" step="0.01" value="1.00" />
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer-bar">
+      <button type="button" class="btn-primary" id="playBtn">▶️ 試聴する (Play)</button>
+      <button type="button" class="btn-save" id="downloadBtn">💾 WAVダウンロード</button>
+      <span class="hint-note">※ FBNeo用に 00.wav / 01.wav 等の連番で保存できます</span>
+      <label class="file-label">
+        📁 保存ファイル名:
+        <input type="text" id="fileNameInput" value="00.wav" />
+      </label>
+    </footer>
   </div>
 
-  <div class="custom-preset-box">
-    <h2 id="customPresetTitle">★ 自作プリセット保存 (最大10個 / 0 / 10)</h2>
-    <div class="preset-save-row">
-      <input type="text" id="presetName" maxlength="24" placeholder="プリセット名（例: 自機ショット01）">
-      <button class="btn-save" onclick="saveCustomPreset()">💾 プリセット保存</button>
-    </div>
-    <div class="custom-list" id="customPresetList"></div>
-  </div>
+  <script>
+    const STORAGE_KEY = "fbneo_retro_sfx_v15_custom_presets";
+    const MAX_CUSTOM_PRESETS = 10;
 
-  <div class="control-group">
-    <h2>1. 基本波形 ＆ ピッチ (オシレーター)</h2>
-    <div class="row">
-      <label>波形タイプ</label>
-      <select id="waveType">
-        <option value="square">矩形波 (Square - ファミコン/基板風)</option>
-        <option value="sawtooth">ノコギリ波 (Sawtooth - 鋭い音)</option>
-        <option value="triangle">三角波 (Triangle - 柔らかい音)</option>
-        <option value="noise">ホワイトノイズ (爆発・風)</option>
-        <option value="lfsr">LFSR粗ノイズ (レトロチップ爆発)</option>
-      </select>
-      <span></span>
-    </div>
-    <div class="row">
-      <label>開始周波数 (Hz)</label>
-      <input type="range" id="startFreq" min="40" max="4000" value="1400" oninput="upd()">
-      <span id="startFreqVal">1400</span>
-    </div>
-    <div class="row">
-      <label>終了周波数 (Hz)</label>
-      <input type="range" id="endFreq" min="20" max="4000" value="120" oninput="upd()">
-      <span id="endFreqVal">120</span>
-    </div>
-    <div class="row">
-      <label>ピッチ変化カーブ</label>
-      <input type="range" id="pitchCurve" min="0.2" max="4.0" step="0.1" value="1.8" oninput="upd()">
-      <span id="pitchCurveVal">1.8</span>
-    </div>
-  </div>
-
-  <div class="control-group">
-    <h2>2. 変調 (ビブラート / 金属音 / アルペジオ感)</h2>
-    <div class="row">
-      <label>変調スピード (LFO Hz)</label>
-      <input type="range" id="lfoFreq" min="0" max="150" value="0" oninput="upd()">
-      <span id="lfoFreqVal">0</span>
-    </div>
-    <div class="row">
-      <label>変調の深さ (Hz)</label>
-      <input type="range" id="lfoDepth" min="0" max="1500" value="0" oninput="upd()">
-      <span id="lfoDepthVal">0</span>
-    </div>
-  </div>
-
-  <div class="control-group">
-    <h2>3. フィルター ＆ 時間 (エンベロープ) ＆ 音量</h2>
-    <div class="row">
-      <label>長さ (秒)</label>
-      <input type="range" id="duration" min="0.05" max="2.5" step="0.05" value="0.25" oninput="upd()">
-      <span id="durationVal">0.25</span>
-    </div>
-    <div class="row">
-      <label>音量減衰カーブ</label>
-      <input type="range" id="decayCurve" min="0.3" max="4.0" step="0.1" value="1.2" oninput="upd()">
-      <span id="decayCurveVal">1.2</span>
-    </div>
-    <div class="row">
-      <label>ローパス開始 (Hz)</label>
-      <input type="range" id="filterStart" min="100" max="12000" step="100" value="8000" oninput="upd()">
-      <span id="filterStartVal">8000</span>
-    </div>
-    <div class="row">
-      <label>ローパス終了 (Hz)</label>
-      <input type="range" id="filterEnd" min="50" max="12000" step="50" value="1000" oninput="upd()">
-      <span id="filterEndVal">1000</span>
-    </div>
-    <div class="row">
-      <label>音量 (ボリューム倍率)</label>
-      <input type="range" id="volume" min="0.0" max="2.0" step="0.05" value="1.0" oninput="upd()">
-      <span id="volumeVal">1.00</span>
-    </div>
-  </div>
-
-  <div class="actions">
-    <button class="btn-play" onclick="playSound()">▶ 試聴する (Play)</button>
-    <button class="btn-dl" onclick="downloadWav()">💾 WAVダウンロード</button>
-  </div>
-
-  <div class="filename-box">
-    <label for="fileName">保存ファイル名:</label>
-    <input type="text" id="fileName" value="00.wav">
-    <span style="color:#888;">※FBNeo用に連番(00.wav, 01.wav等)で保存できます</span>
-  </div>
-
-  <div class="status-note" id="audioStatus">AudioContext: 未初期化（クリックで再生）</div>
-
-<script>
-const SAMPLE_RATE = 44100;
-const STORAGE_KEY = 'fbneo_retro_sfx_custom_presets_v1';
-const MAX_CUSTOM_PRESETS = 10;
-let audioCtx = null;
-
-function setStatus(msg) {
-  const el = document.getElementById('audioStatus');
-  if (el) el.textContent = msg;
-}
-
-function upd() {
-  const ids = ['startFreq', 'endFreq', 'pitchCurve', 'lfoFreq', 'lfoDepth', 'duration', 'decayCurve', 'filterStart', 'filterEnd'];
-  ids.forEach(id => {
-    document.getElementById(id + 'Val').textContent = document.getElementById(id).value;
-  });
-  const vol = parseFloat(document.getElementById('volume').value);
-  document.getElementById('volumeVal').textContent = vol.toFixed(2);
-}
-
-function getParams() {
-  return {
-    waveType: document.getElementById('waveType').value,
-    startFreq: parseFloat(document.getElementById('startFreq').value),
-    endFreq: parseFloat(document.getElementById('endFreq').value),
-    pitchCurve: parseFloat(document.getElementById('pitchCurve').value),
-    lfoFreq: parseFloat(document.getElementById('lfoFreq').value),
-    lfoDepth: parseFloat(document.getElementById('lfoDepth').value),
-    duration: parseFloat(document.getElementById('duration').value),
-    decayCurve: parseFloat(document.getElementById('decayCurve').value),
-    filterStart: parseFloat(document.getElementById('filterStart').value),
-    filterEnd: parseFloat(document.getElementById('filterEnd').value),
-    volume: parseFloat(document.getElementById('volume').value)
-  };
-}
-
-function applyParamsObject(p) {
-  document.getElementById('waveType').value = p.waveType ?? 'square';
-  document.getElementById('startFreq').value = p.startFreq ?? 1400;
-  document.getElementById('endFreq').value = p.endFreq ?? 120;
-  document.getElementById('pitchCurve').value = p.pitchCurve ?? 1.8;
-  document.getElementById('lfoFreq').value = p.lfoFreq ?? 0;
-  document.getElementById('lfoDepth').value = p.lfoDepth ?? 0;
-  document.getElementById('duration').value = p.duration ?? 0.25;
-  document.getElementById('decayCurve').value = p.decayCurve ?? 1.2;
-  document.getElementById('filterStart').value = p.filterStart ?? 8000;
-  document.getElementById('filterEnd').value = p.filterEnd ?? 1000;
-  document.getElementById('volume').value = p.volume ?? 1.0;
-  upd();
-  playSound();
-}
-
-function loadCustomPresets() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
-    const trimmed = {};
-    Object.keys(parsed).slice(0, MAX_CUSTOM_PRESETS).forEach(k => {
-      trimmed[k] = parsed[k];
-    });
-    return trimmed;
-  } catch (e) {
-    return {};
-  }
-}
-
-function saveCustomPresetsObj(obj) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
-  } catch (e) {
-    setStatus('保存エラー: localStorage に書き込めませんでした');
-  }
-}
-
-function saveCustomPreset() {
-  const input = document.getElementById('presetName');
-  const name = input.value.trim();
-  if (!name) {
-    setStatus('プリセット名を入力してから保存してな');
-    input.focus();
-    return;
-  }
-  const presets = loadCustomPresets();
-  const isOverwrite = Object.prototype.hasOwnProperty.call(presets, name);
-  const currentCount = Object.keys(presets).length;
-
-  if (!isOverwrite && currentCount >= MAX_CUSTOM_PRESETS) {
-    setStatus(`自作プリセットは最大${MAX_CUSTOM_PRESETS}個までやで。不要なものを削除するか、既存の名前で上書きしてな`);
-    return;
-  }
-
-  presets[name] = getParams();
-  saveCustomPresetsObj(presets);
-  renderCustomPresets();
-  setStatus(isOverwrite ? `プリセット「${name}」を上書き保存しました` : `プリセット「${name}」を保存しました (${Object.keys(presets).length}/${MAX_CUSTOM_PRESETS})`);
-}
-
-function deleteCustomPreset(name) {
-  const presets = loadCustomPresets();
-  if (!Object.prototype.hasOwnProperty.call(presets, name)) return;
-  delete presets[name];
-  saveCustomPresetsObj(presets);
-  renderCustomPresets();
-  setStatus(`プリセット「${name}」を削除しました (${Object.keys(presets).length}/${MAX_CUSTOM_PRESETS})`);
-}
-
-function renderCustomPresets() {
-  const container = document.getElementById('customPresetList');
-  const titleEl = document.getElementById('customPresetTitle');
-  const presets = loadCustomPresets();
-  const names = Object.keys(presets);
-
-  if (titleEl) {
-    titleEl.textContent = `★ 自作プリセット保存 (最大${MAX_CUSTOM_PRESETS}個 / ${names.length} / ${MAX_CUSTOM_PRESETS})`;
-  }
-
-  container.innerHTML = '';
-  if (names.length === 0) {
-    const span = document.createElement('span');
-    span.className = 'empty-msg';
-    span.textContent = `まだ自作プリセットはありません（最大${MAX_CUSTOM_PRESETS}個まで保存できます）。`;
-    container.appendChild(span);
-    return;
-  }
-
-  names.forEach(name => {
-    const item = document.createElement('div');
-    item.className = 'custom-item';
-
-    const loadBtn = document.createElement('button');
-    loadBtn.className = 'load-btn';
-    loadBtn.textContent = name;
-    loadBtn.onclick = () => {
-      document.getElementById('presetName').value = name;
-      applyParamsObject(presets[name]);
+    const PRESETS = {
+      shot: {
+        waveType: "square", startFreq: 1400, endFreq: 120, pitchCurve: 1.8,
+        lfoSpeed: 0, lfoDepth: 0, duration: 0.14, decayCurve: 1.5,
+        lpStart: 9000, lpEnd: 1200, volume: 0.85
+      },
+      laser: {
+        waveType: "sawtooth", startFreq: 2200, endFreq: 240, pitchCurve: 2.2,
+        lfoSpeed: 38, lfoDepth: 260, duration: 0.22, decayCurve: 1.3,
+        lpStart: 12000, lpEnd: 1800, volume: 0.80
+      },
+      plasma: {
+        waveType: "triangle", startFreq: 950, endFreq: 310, pitchCurve: 1.2,
+        lfoSpeed: 18, lfoDepth: 190, duration: 0.28, decayCurve: 1.1,
+        lpStart: 6500, lpEnd: 900, volume: 0.90
+      },
+      cannon: {
+        waveType: "square", startFreq: 280, endFreq: 42, pitchCurve: 2.5,
+        lfoSpeed: 0, lfoDepth: 0, duration: 0.42, decayCurve: 1.7,
+        lpStart: 2400, lpEnd: 180, volume: 1.10
+      },
+      blast: {
+        waveType: "lfsr", startFreq: 900, endFreq: 75, pitchCurve: 1.6,
+        lfoSpeed: 24, lfoDepth: 140, duration: 0.48, decayCurve: 1.8,
+        lpStart: 5000, lpEnd: 400, volume: 1.00
+      },
+      explosion: {
+        waveType: "noise", startFreq: 600, endFreq: 60, pitchCurve: 1.4,
+        lfoSpeed: 0, lfoDepth: 0, duration: 0.75, decayCurve: 1.9,
+        lpStart: 6000, lpEnd: 220, volume: 1.05
+      },
+      smallBlast: {
+        waveType: "lfsr", startFreq: 1200, endFreq: 110, pitchCurve: 1.7,
+        lfoSpeed: 12, lfoDepth: 80, duration: 0.24, decayCurve: 2.1,
+        lpStart: 7500, lpEnd: 600, volume: 0.90
+      },
+      quake: {
+        waveType: "noise", startFreq: 180, endFreq: 35, pitchCurve: 1.2,
+        lfoSpeed: 14, lfoDepth: 45, duration: 1.10, decayCurve: 1.1,
+        lpStart: 1200, lpEnd: 140, volume: 1.15
+      },
+      ricochet: {
+        waveType: "square", startFreq: 1850, endFreq: 2900, pitchCurve: 0.7,
+        lfoSpeed: 55, lfoDepth: 480, duration: 0.18, decayCurve: 1.4,
+        lpStart: 14000, lpEnd: 3200, volume: 0.80
+      },
+      hit: {
+        waveType: "square", startFreq: 660, endFreq: 1760, pitchCurve: 0.65,
+        lfoSpeed: 28, lfoDepth: 220, duration: 0.20, decayCurve: 1.3,
+        lpStart: 10000, lpEnd: 2400, volume: 0.85
+      }
     };
 
-    const delBtn = document.createElement('button');
-    delBtn.className = 'del-btn';
-    delBtn.textContent = '✕';
-    delBtn.title = `${name} を削除`;
-    delBtn.onclick = () => deleteCustomPreset(name);
+    const paramIds = [
+      "waveType", "startFreq", "endFreq", "pitchCurve",
+      "lfoSpeed", "lfoDepth", "duration", "decayCurve",
+      "lpStart", "lpEnd", "volume"
+    ];
 
-    item.appendChild(loadBtn);
-    item.appendChild(delBtn);
-    container.appendChild(item);
-  });
-}
+    const rangeIds = [
+      "startFreq", "endFreq", "pitchCurve",
+      "lfoSpeed", "lfoDepth",
+      "duration", "decayCurve", "lpStart", "lpEnd", "volume"
+    ];
 
-function generateSamples(p) {
-  const totalSamples = Math.max(1, Math.floor(SAMPLE_RATE * p.duration));
-  const buffer = new Float32Array(totalSamples);
+    rangeIds.forEach((id) => {
+      const input = document.getElementById(id);
+      const out = document.getElementById(id + "Val");
+      const update = () => {
+        out.textContent = id === "volume" ? Number(input.value).toFixed(2) : input.value;
+      };
+      input.addEventListener("input", update);
+      update();
+    });
 
-  let phase = 0;
-  let lfoPhase = 0;
-  let lfsr = 0xACE1;
-  let lfsrCounter = 0;
-  let currentNoise = 0;
-  let lpOut = 0;
-
-  for (let i = 0; i < totalSamples; i++) {
-    const t = i / totalSamples;
-
-    const pitchProgress = Math.pow(t, p.pitchCurve);
-    let freq = p.startFreq + (p.endFreq - p.startFreq) * pitchProgress;
-
-    if (p.lfoFreq > 0 && p.lfoDepth > 0) {
-      lfoPhase += (2 * Math.PI * p.lfoFreq) / SAMPLE_RATE;
-      freq += Math.sin(lfoPhase) * p.lfoDepth;
+    function getSampleRate() {
+      return parseInt(document.getElementById("sampleRate").value, 10) || 44100;
     }
-    freq = Math.max(10, freq);
 
-    phase += freq / SAMPLE_RATE;
-    if (phase >= 1.0) phase -= Math.floor(phase);
+    function readParams() {
+      return {
+        waveType: document.getElementById("waveType").value,
+        startFreq: parseFloat(document.getElementById("startFreq").value),
+        endFreq: parseFloat(document.getElementById("endFreq").value),
+        pitchCurve: parseFloat(document.getElementById("pitchCurve").value),
+        lfoSpeed: parseFloat(document.getElementById("lfoSpeed").value),
+        lfoDepth: parseFloat(document.getElementById("lfoDepth").value),
+        duration: parseFloat(document.getElementById("duration").value),
+        decayCurve: parseFloat(document.getElementById("decayCurve").value),
+        lpStart: parseFloat(document.getElementById("lpStart").value),
+        lpEnd: parseFloat(document.getElementById("lpEnd").value),
+        volume: parseFloat(document.getElementById("volume").value)
+      };
+    }
 
-    let sample = 0;
-    if (p.waveType === 'square') {
-      sample = phase < 0.5 ? 1.0 : -1.0;
-    } else if (p.waveType === 'sawtooth') {
-      sample = 2.0 * phase - 1.0;
-    } else if (p.waveType === 'triangle') {
-      sample = 1.0 - 4.0 * Math.abs(Math.round(phase - 0.25) - (phase - 0.25));
-    } else if (p.waveType === 'noise') {
-      sample = Math.random() * 2.0 - 1.0;
-    } else if (p.waveType === 'lfsr') {
-      lfsrCounter += freq / SAMPLE_RATE;
-      if (lfsrCounter >= 1.0) {
-        lfsrCounter -= 1.0;
-        const bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5)) & 1;
-        lfsr = (lfsr >> 1) | (bit << 15);
-        currentNoise = (lfsr & 1) ? 1.0 : -1.0;
+    function applyParams(p) {
+      paramIds.forEach((key) => {
+        if (p[key] === undefined) return;
+        const el = document.getElementById(key);
+        if (!el) return;
+        el.value = p[key];
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    }
+
+    function randomizeParams() {
+      const waves = ["square", "sawtooth", "triangle", "noise", "lfsr"];
+      const rand = (min, max) => min + Math.random() * (max - min);
+      const step = (min, max, s) => Math.round(rand(min, max) / s) * s;
+
+      applyParams({
+        waveType: waves[Math.floor(Math.random() * waves.length)],
+        startFreq: step(120, 2600, 10),
+        endFreq: step(40, 2400, 10),
+        pitchCurve: Number(rand(0.4, 3.0).toFixed(1)),
+        lfoSpeed: Math.random() < 0.55 ? 0 : step(5, 75, 1),
+        lfoDepth: Math.random() < 0.55 ? 0 : step(40, 800, 10),
+        duration: Number(rand(0.08, 0.75).toFixed(2)),
+        decayCurve: Number(rand(0.6, 2.5).toFixed(1)),
+        lpStart: step(1500, 14000, 50),
+        lpEnd: step(150, 6000, 50),
+        volume: Number(rand(0.65, 1.25).toFixed(2))
+      });
+    }
+
+    document.querySelectorAll("#presetButtons .preset-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#presetButtons .preset-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        const key = btn.dataset.preset;
+        if (key === "random") {
+          randomizeParams();
+        } else if (PRESETS[key]) {
+          applyParams(PRESETS[key]);
+        }
+        playSfx();
+      });
+    });
+
+    function loadCustomPresets() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) {
+        return [];
       }
-      sample = currentNoise;
     }
 
-    const cutoff = p.filterStart + (p.filterEnd - p.filterStart) * t;
-    const rc = 1.0 / (2 * Math.PI * Math.max(20, cutoff));
-    const dt = 1.0 / SAMPLE_RATE;
-    const alpha = dt / (rc + dt);
-    lpOut = lpOut + alpha * (sample - lpOut);
-
-    const attack = Math.min(1.0, i / (SAMPLE_RATE * 0.005));
-    const env = attack * Math.pow(1.0 - t, p.decayCurve);
-
-    buffer[i] = Math.max(-1.0, Math.min(1.0, lpOut * env * 0.85 * p.volume));
-  }
-  return buffer;
-}
-
-async function ensureAudioContext() {
-  const Ctx = window.AudioContext || window.webkitAudioContext;
-  if (!Ctx) {
-    setStatus('エラー: このブラウザは Web Audio API に非対応です');
-    return null;
-  }
-  if (!audioCtx || audioCtx.state === 'closed') {
-    audioCtx = new Ctx({ sampleRate: SAMPLE_RATE });
-  }
-  if (audioCtx.state === 'suspended') {
-    try {
-      await audioCtx.resume();
-    } catch (e) {
-      setStatus('resume失敗: ' + e.message);
+    function saveCustomPresetsList(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, MAX_CUSTOM_PRESETS)));
     }
-  }
-  setStatus(`AudioContext: ${audioCtx.state} (${audioCtx.sampleRate}Hz)`);
-  return audioCtx;
-}
 
-async function playSound() {
-  const ctx = await ensureAudioContext();
-  if (!ctx) return;
-
-  const samples = generateSamples(getParams());
-  const audioBuffer = ctx.createBuffer(1, samples.length, SAMPLE_RATE);
-  audioBuffer.getChannelData(0).set(samples);
-
-  const source = ctx.createBufferSource();
-  source.buffer = audioBuffer;
-  source.connect(ctx.destination);
-  source.start();
-}
-
-function downloadWav() {
-  const samples = generateSamples(getParams());
-  const numChannels = 1;
-  const bitsPerSample = 16;
-  const byteRate = SAMPLE_RATE * numChannels * (bitsPerSample / 8);
-  const blockAlign = numChannels * (bitsPerSample / 8);
-  const dataSize = samples.length * 2;
-  const buffer = new ArrayBuffer(44 + dataSize);
-  const view = new DataView(buffer);
-
-  function writeString(offset, str) {
-    for (let i = 0; i < str.length; i++) {
-      view.setUint8(offset + i, str.charCodeAt(i));
+    function refreshCustomPresetSelect(selectedName = "") {
+      const sel = document.getElementById("customPresetSelect");
+      const list = loadCustomPresets();
+      sel.innerHTML = '<option value="">📂 -- 自作プリセット読込 --</option>';
+      list.forEach((item) => {
+        const opt = document.createElement("option");
+        opt.value = item.name;
+        opt.textContent = "⭐ " + item.name;
+        if (item.name === selectedName) opt.selected = true;
+        sel.appendChild(opt);
+      });
     }
-  }
 
-  writeString(0, 'RIFF');
-  view.setUint32(4, 36 + dataSize, true);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, numChannels, true);
-  view.setUint32(24, SAMPLE_RATE, true);
-  view.setUint32(28, byteRate, true);
-  view.setUint16(32, blockAlign, true);
-  view.setUint16(34, bitsPerSample, true);
-  writeString(36, 'data');
-  view.setUint32(40, dataSize, true);
+    function setShareStatus(text) {
+      document.getElementById("shareStatusMsg").textContent = text;
+    }
 
-  let offset = 44;
-  for (let i = 0; i < samples.length; i++, offset += 2) {
-    const s = Math.max(-1, Math.min(1, samples[i]));
-    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-  }
+    document.getElementById("saveCustomPresetBtn").addEventListener("click", () => {
+      const nameInput = document.getElementById("customPresetName");
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("プリセット名を入力してや〜！");
+        return;
+      }
+      const list = loadCustomPresets().filter((x) => x.name !== name);
+      if (list.length >= MAX_CUSTOM_PRESETS) {
+        alert("自作プリセットは最大" + MAX_CUSTOM_PRESETS + "個までやで！");
+        return;
+      }
+      list.unshift({ name, sampleRate: getSampleRate(), params: readParams() });
+      saveCustomPresetsList(list);
+      refreshCustomPresetSelect(name);
+      nameInput.value = "";
+      setShareStatus("📌 「" + name + "」を保存したで！");
+    });
 
-  const blob = new Blob([buffer], { type: 'audio/wav' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  let fname = document.getElementById('fileName').value.trim() || 'sample.wav';
-  if (!fname.endsWith('.wav')) fname += '.wav';
-  a.href = url;
-  a.download = fname;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+    document.getElementById("customPresetSelect").addEventListener("change", (e) => {
+      const name = e.target.value;
+      if (!name) return;
+      const found = loadCustomPresets().find((x) => x.name === name);
+      if (found && found.params) {
+        if (found.sampleRate) {
+          document.getElementById("sampleRate").value = String(found.sampleRate);
+          document.getElementById("audioStatus").textContent = "🔊 準備OK (" + getSampleRate() + "Hz)";
+        }
+        applyParams(found.params);
+        playSfx();
+      }
+    });
 
-function applyPreset(type) {
-  if (type === 'zapper') {
-    applyParamsObject({ waveType: 'square', startFreq: 1600, endFreq: 140, pitchCurve: 2.2, lfoFreq: 0, lfoDepth: 0, duration: 0.2, decayCurve: 1.4, filterStart: 9000, filterEnd: 1200, volume: 1.0 });
-  } else if (type === 'laser') {
-    applyParamsObject({ waveType: 'sawtooth', startFreq: 2600, endFreq: 220, pitchCurve: 2.8, lfoFreq: 0, lfoDepth: 0, duration: 0.14, decayCurve: 1.7, filterStart: 10000, filterEnd: 1800, volume: 1.0 });
-  } else if (type === 'plasma') {
-    applyParamsObject({ waveType: 'square', startFreq: 1100, endFreq: 260, pitchCurve: 1.3, lfoFreq: 48, lfoDepth: 280, duration: 0.28, decayCurve: 1.2, filterStart: 7500, filterEnd: 900, volume: 1.0 });
-  } else if (type === 'cannon') {
-    applyParamsObject({ waveType: 'triangle', startFreq: 420, endFreq: 48, pitchCurve: 2.4, lfoFreq: 18, lfoDepth: 55, duration: 0.42, decayCurve: 1.5, filterStart: 3200, filterEnd: 250, volume: 1.15 });
-  } else if (type === 'blaster') {
-    applyParamsObject({ waveType: 'triangle', startFreq: 900, endFreq: 180, pitchCurve: 0.8, lfoFreq: 35, lfoDepth: 120, duration: 0.45, decayCurve: 0.9, filterStart: 5000, filterEnd: 800, volume: 1.0 });
-  } else if (type === 'explosion') {
-    applyParamsObject({ waveType: 'lfsr', startFreq: 1200, endFreq: 80, pitchCurve: 1.5, lfoFreq: 15, lfoDepth: 200, duration: 1.2, decayCurve: 1.8, filterStart: 4500, filterEnd: 150, volume: 1.0 });
-  } else if (type === 'mini_boom') {
-    applyParamsObject({ waveType: 'noise', startFreq: 950, endFreq: 140, pitchCurve: 1.6, lfoFreq: 0, lfoDepth: 0, duration: 0.22, decayCurve: 2.2, filterStart: 6000, filterEnd: 400, volume: 1.0 });
-  } else if (type === 'quake_boom') {
-    applyParamsObject({ waveType: 'lfsr', startFreq: 320, endFreq: 35, pitchCurve: 1.1, lfoFreq: 12, lfoDepth: 95, duration: 1.85, decayCurve: 1.3, filterStart: 2200, filterEnd: 90, volume: 1.2 });
-  } else if (type === 'bacura') {
-    applyParamsObject({ waveType: 'square', startFreq: 2200, endFreq: 2100, pitchCurve: 1.0, lfoFreq: 110, lfoDepth: 650, duration: 0.25, decayCurve: 2.0, filterStart: 10000, filterEnd: 4000, volume: 1.0 });
-  } else if (type === 'hit') {
-    applyParamsObject({ waveType: 'square', startFreq: 600, endFreq: 1400, pitchCurve: 1.2, lfoFreq: 65, lfoDepth: 450, duration: 0.35, decayCurve: 1.1, filterStart: 8000, filterEnd: 2500, volume: 1.0 });
-  } else if (type === 'random') {
-    const waves = ['square', 'sawtooth', 'triangle', 'noise', 'lfsr'];
-    const w = waves[Math.floor(Math.random() * waves.length)];
-    const sf = Math.floor(Math.random() * 2500) + 150;
-    const ef = Math.floor(Math.random() * 1500) + 40;
-    const pc = parseFloat((Math.random() * 2.5 + 0.4).toFixed(1));
-    const lf = Math.random() > 0.5 ? Math.floor(Math.random() * 120) : 0;
-    const ld = lf > 0 ? Math.floor(Math.random() * 800) : 0;
-    const dur = parseFloat((Math.random() * 1.0 + 0.1).toFixed(2));
-    const dc = parseFloat((Math.random() * 2.0 + 0.5).toFixed(1));
-    applyParamsObject({ waveType: w, startFreq: sf, endFreq: ef, pitchCurve: pc, lfoFreq: lf, lfoDepth: ld, duration: dur, decayCurve: dc, filterStart: 8000, filterEnd: 400, volume: 1.0 });
-  }
-}
+    document.getElementById("deleteCustomPresetBtn").addEventListener("click", () => {
+      const sel = document.getElementById("customPresetSelect");
+      const name = sel.value;
+      if (!name) return;
+      const next = loadCustomPresets().filter((x) => x.name !== name);
+      saveCustomPresetsList(next);
+      refreshCustomPresetSelect("");
+      setShareStatus("🗑️ 「" + name + "」を削除したで");
+    });
 
-upd();
-renderCustomPresets();
-</script>
+    // JSONエクスポート（自作プリセット一覧、または空なら現在の音を出力）
+    document.getElementById("exportJsonBtn").addEventListener("click", () => {
+      const saved = loadCustomPresets();
+      const payload = {
+        app: "FBNeo Retro SFX Generator",
+        version: "1.5",
+        presets: saved.length > 0 ? saved : [
+          {
+            name: "現在の音設定",
+            sampleRate: getSampleRate(),
+            params: readParams()
+          }
+        ]
+      };
+      document.getElementById("presetJsonArea").value = JSON.stringify(payload, null, 2);
+      setShareStatus("📤 JSONを書き出したで（" + payload.presets.length + "件）");
+    });
+
+    // JSONクリップボードコピー
+    document.getElementById("copyJsonBtn").addEventListener("click", async () => {
+      const area = document.getElementById("presetJsonArea");
+      if (!area.value.trim()) {
+        document.getElementById("exportJsonBtn").click();
+      }
+      const text = area.value;
+      try {
+        await navigator.clipboard.writeText(text);
+        setShareStatus("📋 クリップボードにコピー完了！みんなに貼り付けて共有しようや〜！");
+      } catch (_) {
+        area.select();
+        document.execCommand("copy");
+        setShareStatus("📋 コピーしたで！");
+      }
+    });
+
+    // JSONインポート（単一プリセット／配列／共有フォーマットに対応）
+    document.getElementById("importJsonBtn").addEventListener("click", () => {
+      const raw = document.getElementById("presetJsonArea").value.trim();
+      if (!raw) {
+        setShareStatus("⚠️ 貼り付け欄にJSONを入れてから押してや！");
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        let incoming = [];
+
+        if (Array.isArray(parsed)) {
+          incoming = parsed;
+        } else if (parsed && Array.isArray(parsed.presets)) {
+          incoming = parsed.presets;
+        } else if (parsed && parsed.params) {
+          incoming = [parsed];
+        } else if (parsed && parsed.waveType) {
+          incoming = [{ name: "共有プリセット", params: parsed }];
+        }
+
+        const validItems = incoming
+          .filter((item) => item && item.params && typeof item.params === "object")
+          .map((item, idx) => ({
+            name: String(item.name || "共有プリセット_" + (idx + 1)).slice(0, 30),
+            sampleRate: item.sampleRate || getSampleRate(),
+            params: item.params
+          }));
+
+        if (validItems.length === 0) {
+          setShareStatus("⚠️ 有効なプリセットデータが見つからへんかったわ");
+          return;
+        }
+
+        const current = loadCustomPresets();
+        const merged = [...validItems, ...current].reduce((acc, item) => {
+          if (!acc.some((x) => x.name === item.name)) {
+            acc.push(item);
+          }
+          return acc;
+        }, []).slice(0, MAX_CUSTOM_PRESETS);
+
+        saveCustomPresetsList(merged);
+        refreshCustomPresetSelect(validItems[0].name);
+        if (validItems[0].sampleRate) {
+          document.getElementById("sampleRate").value = String(validItems[0].sampleRate);
+          document.getElementById("audioStatus").textContent = "🔊 準備OK (" + getSampleRate() + "Hz)";
+        }
+        applyParams(validItems[0].params);
+        setShareStatus("📥 " + validItems.length + "件のプリセットを取り込んで試聴したで！");
+        playSfx();
+      } catch (err) {
+        setShareStatus("⚠️ JSONの形式がちょっとおかしいみたいやで");
+      }
+    });
+
+    refreshCustomPresetSelect("");
+
+    function renderSamples(params, sampleRate) {
+      const totalSamples = Math.max(1, Math.floor(params.duration * sampleRate));
+      const out = new Float32Array(totalSamples);
+
+      let phase = 0;
+      let lfsr = 0x7fff;
+      let lfsrSample = 0;
+      let lfsrAcc = 0;
+      let whiteSample = 0;
+      let whiteAcc = 0;
+      let lpState = 0;
+
+      for (let i = 0; i < totalSamples; i++) {
+        const t = i / sampleRate;
+        const progress = totalSamples > 1 ? i / (totalSamples - 1) : 0;
+
+        const curvedProgress = Math.pow(progress, params.pitchCurve);
+        const baseFreq = params.startFreq + (params.endFreq - params.startFreq) * curvedProgress;
+        const lfoOffset = params.lfoSpeed > 0
+          ? Math.sin(2 * Math.PI * params.lfoSpeed * t) * params.lfoDepth
+          : 0;
+        const freq = Math.max(10, Math.min(sampleRate * 0.45, baseFreq + lfoOffset));
+
+        let raw = 0;
+        if (params.waveType === "square") {
+          raw = phase < 0.5 ? 0.65 : -0.65;
+          phase = (phase + freq / sampleRate) % 1.0;
+        } else if (params.waveType === "sawtooth") {
+          raw = phase * 1.3 - 0.65;
+          phase = (phase + freq / sampleRate) % 1.0;
+        } else if (params.waveType === "triangle") {
+          raw = (1.0 - 4.0 * Math.abs(Math.round(phase - 0.25) - (phase - 0.25))) * 0.75;
+          phase = (phase + freq / sampleRate) % 1.0;
+        } else if (params.waveType === "lfsr") {
+          const stepInc = (freq * 8) / sampleRate;
+          lfsrAcc += stepInc;
+          while (lfsrAcc >= 1.0) {
+            lfsrAcc -= 1.0;
+            const bit = ((lfsr >> 0) ^ (lfsr >> 1)) & 1;
+            lfsr = (lfsr >> 1) | (bit << 14);
+            lfsrSample = (lfsr & 1) ? 0.75 : -0.75;
+          }
+          raw = lfsrSample;
+        } else {
+          const stepInc = Math.max(0.02, Math.min(1.0, (freq * 4) / sampleRate));
+          whiteAcc += stepInc;
+          while (whiteAcc >= 1.0) {
+            whiteAcc -= 1.0;
+            whiteSample = Math.random() * 2 - 1;
+          }
+          raw = whiteSample * 0.75;
+        }
+
+        const lpCutoff = params.lpStart + (params.lpEnd - params.lpStart) * progress;
+        const clampedLp = Math.max(20, Math.min(sampleRate * 0.48, lpCutoff));
+        const rc = 1.0 / (2.0 * Math.PI * clampedLp);
+        const dt = 1.0 / sampleRate;
+        const alpha = dt / (rc + dt);
+        lpState = lpState + alpha * (raw - lpState);
+
+        const env = Math.pow(Math.max(0, 1.0 - progress), params.decayCurve);
+        const sample = lpState * env * params.volume;
+        out[i] = Math.max(-1.0, Math.min(1.0, sample));
+      }
+
+      return out;
+    }
+
+    async function playSfx() {
+      const sampleRate = getSampleRate();
+      const params = readParams();
+      const samples = renderSamples(params, sampleRate);
+      const statusEl = document.getElementById("audioStatus");
+
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx({ sampleRate });
+        if (ctx.state === "suspended") {
+          await ctx.resume();
+        }
+        const buffer = ctx.createBuffer(1, samples.length, sampleRate);
+        buffer.getChannelData(0).set(samples);
+
+        const src = ctx.createBufferSource();
+        src.buffer = buffer;
+        src.connect(ctx.destination);
+        src.start();
+
+        statusEl.textContent = "🔊 再生中 (" + sampleRate + "Hz)";
+        src.onended = () => {
+          statusEl.textContent = "🔊 準備OK (" + sampleRate + "Hz)";
+          ctx.close().catch(() => {});
+        };
+      } catch (err) {
+        statusEl.textContent = "⚠️ 再生エラー";
+        console.error(err);
+      }
+    }
+
+    function downloadSfxWav() {
+      const sampleRate = getSampleRate();
+      const params = readParams();
+      const samples = renderSamples(params, sampleRate);
+
+      const numChannels = 1;
+      const bitsPerSample = 16;
+      const blockAlign = (numChannels * bitsPerSample) / 8;
+      const byteRate = sampleRate * blockAlign;
+      const dataSize = samples.length * blockAlign;
+      const buffer = new ArrayBuffer(44 + dataSize);
+      const view = new DataView(buffer);
+
+      const writeStr = (offset, str) => {
+        for (let i = 0; i < str.length; i++) {
+          view.setUint8(offset + i, str.charCodeAt(i));
+        }
+      };
+
+      writeStr(0, "RIFF");
+      view.setUint32(4, 36 + dataSize, true);
+      writeStr(8, "WAVE");
+      writeStr(12, "fmt ");
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, numChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, byteRate, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, bitsPerSample, true);
+      writeStr(36, "data");
+      view.setUint32(40, dataSize, true);
+
+      let offset = 44;
+      for (let i = 0; i < samples.length; i++) {
+        const s = Math.max(-1, Math.min(1, samples[i]));
+        const val = s < 0 ? s * 0x8000 : s * 0x7fff;
+        view.setInt16(offset, val, true);
+        offset += 2;
+      }
+
+      let fileName = document.getElementById("fileNameInput").value.trim() || "00.wav";
+      if (!/\.wav$/i.test(fileName)) {
+        fileName += ".wav";
+      }
+
+      const blob = new Blob([buffer], { type: "audio/wav" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    document.getElementById("playBtn").addEventListener("click", playSfx);
+    document.getElementById("downloadBtn").addEventListener("click", downloadSfxWav);
+    document.getElementById("sampleRate").addEventListener("change", () => {
+      document.getElementById("audioStatus").textContent = "🔊 準備OK (" + getSampleRate() + "Hz)";
+    });
+  </script>
 </body>
 </html>
