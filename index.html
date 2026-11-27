@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FBNeo Retro SFX Generator v1.5</title>
+  <title>FBNeo Retro SFX Generator v1.6</title>
   <style>
     :root {
       --bg-main: #0b0f17;
@@ -348,7 +348,7 @@
     <header class="header-bar">
       <div class="title-group">
         <h1>🎵 FBNeo Retro SFX Generator</h1>
-        <span class="version-badge">v1.5</span>
+        <span class="version-badge">v1.6</span>
       </div>
       <div class="format-box">
         <label for="sampleRate">🎚️ サンプリングレート:</label>
@@ -474,7 +474,7 @@
               <label for="duration">⏱️ 長さ (秒)</label>
               <span class="val-readout" id="durationVal">0.25</span>
             </div>
-            <input type="range" id="duration" min="0.02" max="2.0" step="0.01" value="0.25" />
+            <input type="range" id="duration" min="0.02" max="6.0" step="0.01" value="0.25" />
           </div>
 
           <div class="field">
@@ -529,9 +529,9 @@
 
     const PRESETS = {
       shot: {
-        waveType: "square", startFreq: 1400, endFreq: 120, pitchCurve: 1.8,
-        lfoSpeed: 0, lfoDepth: 0, duration: 0.14, decayCurve: 1.5,
-        lpStart: 9000, lpEnd: 1200, volume: 0.85
+        waveType: "square", startFreq: 1600, endFreq: 140, pitchCurve: 2.2,
+        lfoSpeed: 0, lfoDepth: 0, duration: 0.2, decayCurve: 1.4,
+        lpStart: 9000, lpEnd: 1200, volume: 1.0
       },
       laser: {
         waveType: "sawtooth", startFreq: 2200, endFreq: 240, pitchCurve: 2.2,
@@ -549,9 +549,9 @@
         lpStart: 2400, lpEnd: 180, volume: 1.10
       },
       blast: {
-        waveType: "lfsr", startFreq: 900, endFreq: 75, pitchCurve: 1.6,
-        lfoSpeed: 24, lfoDepth: 140, duration: 0.48, decayCurve: 1.8,
-        lpStart: 5000, lpEnd: 400, volume: 1.00
+        waveType: "triangle", startFreq: 900, endFreq: 180, pitchCurve: 0.8,
+        lfoSpeed: 35, lfoDepth: 120, duration: 0.45, decayCurve: 0.9,
+        lpStart: 5000, lpEnd: 800, volume: 1.0
       },
       explosion: {
         waveType: "noise", startFreq: 600, endFreq: 60, pitchCurve: 1.4,
@@ -745,7 +745,7 @@
       const saved = loadCustomPresets();
       const payload = {
         app: "FBNeo Retro SFX Generator",
-        version: "1.5",
+        version: "1.6",
         presets: saved.length > 0 ? saved : [
           {
             name: "現在の音設定",
